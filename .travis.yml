@@ -1,0 +1,23 @@
+sudo: required
+services:
+    - docker
+
+before_install:
+    - docker build -t robinio/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+    - docker run -e CI=true robinio/react-test npm test
+
+after_success:
+    - docker build -t robinio/multi-client ./client
+    - docker build -t robinio/multi-nginx ./nginx
+    - docker build -t robinio/multi-server ./server
+    - docker build -t robinio/multi-worker ./worker
+    #Log in to the docker CLI
+    - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+    #Push to docker hub
+    - docker push robinio/multi-client
+    - docker push robinio/multi-nginx
+    - docker push robinio/multi-server
+    - docker push robinio/multi-worker
+    
